@@ -2,40 +2,68 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-exports.register = async (req, res) => {
+exports.signup = async (req, res) => {
   try {
-    const { name, email, role, password } = req.body;
-    console.log(req.body)
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ error: 'User already exists' });
+    const { role, username, email, password } = req.body;
 
-    // Hash password
+    if (!username || !email || !password || !role) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const existingUser = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email or username already exists' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    user = new User({ name, email, role, password: hashedPassword });
-    await user.save();
+    const newUser = new User({
+      role,
+      username,
+      email: email.toLowerCase(),
+      password: hashedPassword
+    });
+
+    await newUser.save();
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+  console.log("Register body:", req.body);
 };
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { emailOrUsername, password, role } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!emailOrUsername || !password || !role) {
+      return res.status(400).json({ error: 'All fields are required including role' });
+    }
 
-    // Check password
+
+    const user = await User.findOne({
+      $or: [
+        { email: emailOrUsername.toLowerCase() },
+        { username: emailOrUsername }
+      ]
+    });
+
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // Create JWT
+
+    if (user.role !== role) {
+      return res.status(403).json({ error: `Role mismatch. You are registered as a ${user.role}.` });
+    }
+
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -46,7 +74,7 @@ exports.login = async (req, res) => {
       token,
       user: {
         id: user._id,
-        name: user.name,
+        username: user.username,
         email: user.email,
         role: user.role
       }
