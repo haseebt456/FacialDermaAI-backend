@@ -6,7 +6,7 @@ const analysisCtrl = require('../controllers/analysisController');
 
 // Patient uploads image for analysis
 router.post(
-  '/upload',
+  '/analysis/upload',
   auth,
   requireRole('patient'),
   analysisCtrl.uploadMiddleware,
