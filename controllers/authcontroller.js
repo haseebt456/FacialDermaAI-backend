@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/sendEmail');
 
 exports.signup = async (req, res) => {
   try {
@@ -34,6 +35,14 @@ exports.signup = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
   console.log("Register body:", req.body);
+
+  await sendEmail(
+    req.body.email,
+    'Welcome to FacialDerma AI',
+    `<h1>Welcome ${req.body.username}!</h1><p>Thank you for registering with us.</p>
+    <p>Your account has been created successfully as ${req.body.role}!</p>
+    <p>Best regards,<br>FacialDerma AI Team</p>`
+  );
 };
 
 exports.login = async (req, res) => {
@@ -44,7 +53,6 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required including role' });
     }
 
-
     const user = await User.findOne({
       $or: [
         { email: emailOrUsername.toLowerCase() },
@@ -54,21 +62,27 @@ exports.login = async (req, res) => {
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid Password' });
-
 
     if (user.role !== role) {
       return res.status(403).json({ error: `Role mismatch. You are registered as a ${user.role}.` });
     }
-
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
+
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  await sendEmail(
+    user.email,
+    'Login Notification',
+    `<h1>Login Alert</h1><p>You just logged into your account...</p>
+    <p><strong>IP Address:</strong> ${ip}</p>
+    <p>If this wasn't you, please secure your account.</p>`
+  );
 
     res.json({
       token,
@@ -82,4 +96,14 @@ exports.login = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+  console.log("Login body:", req.body);
+
+  // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  // await sendEmail(
+  //   user.email,
+  //   'Login Notification',
+  //   `<h1>Login Alert</h1><p>You just logged into your account...</p>
+  //   <p><strong>IP Address:</strong> ${ip}</p>
+  //   <p>If this wasn't you, please secure your account.</p>`
+  // );
 };
