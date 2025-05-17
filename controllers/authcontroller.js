@@ -31,19 +31,23 @@ exports.signup = async (req, res) => {
     await newUser.save();
 
     res.status(201).json({ message: 'User registered successfully' });
+
+    // ✅ Send email after response
+    sendEmail(
+      newUser.email,
+      'Welcome to FacialDerma AI',
+      `<h1>Welcome ${newUser.username}!</h1>
+       <p>Thank you for registering with us.</p>
+       <p>Your account has been created successfully as ${newUser.role}!</p>
+       <p>Best regards,<br>FacialDerma AI Team</p>`
+    ).catch(err => console.error('Signup email error:', err));
+
+    console.log("Register body:", req.body);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-  console.log("Register body:", req.body);
-
-  await sendEmail(
-    req.body.email,
-    'Welcome to FacialDerma AI',
-    `<h1>Welcome ${req.body.username}!</h1><p>Thank you for registering with us.</p>
-    <p>Your account has been created successfully as ${req.body.role}!</p>
-    <p>Best regards,<br>FacialDerma AI Team</p>`
-  );
 };
+
 
 exports.login = async (req, res) => {
   try {
@@ -75,15 +79,6 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  await sendEmail(
-    user.email,
-    'Login Notification',
-    `<h1>Login Alert</h1><p>You just logged into your account...</p>
-    <p><strong>IP Address:</strong> ${ip}</p>
-    <p>If this wasn't you, please secure your account.</p>`
-  );
-
     res.json({
       token,
       user: {
@@ -93,17 +88,20 @@ exports.login = async (req, res) => {
         role: user.role
       }
     });
+
+    // ✅ Send login notification after response
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    sendEmail(
+      user.email,
+      'Login Notification',
+      `<h1>Login Alert</h1>
+      <p>You just logged into your account.</p>
+      <p><strong>IP Address:</strong> ${ip}</p>
+      <p>If this wasn't you, please secure your account.</p>`
+    ).catch(err => console.error('Login email error:', err));
+
+    // console.log("Login body:", req.body);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-  console.log("Login body:", req.body);
-
-  // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  // await sendEmail(
-  //   user.email,
-  //   'Login Notification',
-  //   `<h1>Login Alert</h1><p>You just logged into your account...</p>
-  //   <p><strong>IP Address:</strong> ${ip}</p>
-  //   <p>If this wasn't you, please secure your account.</p>`
-  // );
 };
