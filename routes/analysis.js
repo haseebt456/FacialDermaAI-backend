@@ -5,7 +5,7 @@ const requireRole = require('../middleware/role');
 const analysisCtrl = require('../controllers/analysisController');
 
 router.post(
-  '/upload',
+  '/analysis/upload',
   auth,
   requireRole('patient'),
   analysisCtrl.uploadMiddleware,

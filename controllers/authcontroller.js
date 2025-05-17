@@ -67,7 +67,7 @@ exports.login = async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!isMatch) return res.status(401).json({ error: 'Invalid Password' });
 
     if (user.role !== role) {
       return res.status(403).json({ error: `Role mismatch. You are registered as a ${user.role}.` });
