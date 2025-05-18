@@ -48,3 +48,15 @@ exports.savePrediction = async (req, res) => {
     res.status(500).json({ error: 'Failed to save result' });
   }
 };
+
+exports.getPredictions = async (req, res) => {
+  try {
+    const predictions = await Prediction.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.status(200).json(predictions);
+    // res.json(predictions);
+    } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch predictions' });
+  }
+};
+
+

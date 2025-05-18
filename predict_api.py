@@ -55,7 +55,7 @@ def predict():
         predicted_label = labels_map.get(predicted_class, "Unknown")
         confidence_score = round(float(np.max(prediction)), 3)
 
-        os.remove(img_path)
+        # os.remove(img_path)
 
         return jsonify(
             {
@@ -71,3 +71,4 @@ def predict():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
+
