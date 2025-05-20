@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     validate: {
       validator: function(v) {
-        return /^\S+$/.test(v); // no whitespace
+        return /^\S+$/.test(v);
       },
       message: props => `${props.value} is not a valid username. No spaces allowed.`
     }

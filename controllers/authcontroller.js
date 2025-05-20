@@ -32,14 +32,13 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
 
-    // ✅ Send email after response
     sendEmail(
       newUser.email,
       'Welcome to FacialDerma AI',
       `<h1>Welcome ${newUser.username}!</h1>
-       <p>Thank you for registering with us.</p>
-       <p>Your account has been created successfully as ${newUser.role}!</p>
-       <p>Best regards,<br>FacialDerma AI Team</p>`
+        <p>Thank you for registering with us.</p>
+        <p>Your account has been created successfully as ${newUser.role}!</p>
+        <p>Best regards,<br>FacialDerma AI Team</p>`
     ).catch(err => console.error('Signup email error:', err));
 
     console.log("Register body:", req.body);
@@ -47,7 +46,6 @@ exports.signup = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.login = async (req, res) => {
   try {
@@ -89,7 +87,6 @@ exports.login = async (req, res) => {
       }
     });
 
-    // ✅ Send login notification after response
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     sendEmail(
       user.email,
@@ -100,7 +97,6 @@ exports.login = async (req, res) => {
       <p>If this wasn't you, please secure your account.</p>`
     ).catch(err => console.error('Login email error:', err));
 
-    // console.log("Login body:", req.body);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

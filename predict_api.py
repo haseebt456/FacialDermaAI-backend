@@ -54,6 +54,7 @@ def predict():
     os.makedirs(upload_folder, exist_ok=True)
     img_path = os.path.join(upload_folder, img_file.filename)
 
+
     try:
         # Save image temporarily
         img_file.save(img_path)
