@@ -1,26 +1,3 @@
-// const Prediction = require('../models/Prediction');
-
-// exports.savePrediction = async (req, res) => {
-//   try {
-//     const { result, imageUrl } = req.body;
-
-//     const prediction = new Prediction({
-//       userId: req.user.id,
-//       result: {
-//         predicted_label,
-//         confidence_score,
-//       },
-//       imageUrl: image_url,
-//     });
-
-//     await prediction.save();
-//     res.status(201).json({ message: 'Result saved successfully' });
-
-//   } catch (error) {
-//     res.status(500).json({ error: 'Failed to save Result' });
-//   }
-// };
-
 const Prediction = require('../models/Prediction');
 
 exports.savePrediction = async (req, res) => {
@@ -53,7 +30,6 @@ exports.getPredictions = async (req, res) => {
   try {
     const predictions = await Prediction.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.status(200).json(predictions);
-    // res.json(predictions);
     } catch (error) {
     res.status(500).json({ error: 'Failed to fetch predictions' });
   }

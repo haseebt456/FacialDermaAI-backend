@@ -5,7 +5,6 @@ import numpy as np
 import os
 from flask_cors import CORS
 
-
 app = Flask(__name__)
 CORS(app)
 
@@ -40,7 +39,7 @@ def predict():
     upload_folder = os.path.abspath("uploads")
     os.makedirs("uploads", exist_ok=True) 
     img_path = os.path.join(upload_folder, img_file.filename)
-    
+
     try:
         img_file.save(img_path)
         print(f"Image saved successfully at {img_path}")
@@ -54,8 +53,6 @@ def predict():
         predicted_class = np.argmax(prediction)
         predicted_label = labels_map.get(predicted_class, "Unknown")
         confidence_score = round(float(np.max(prediction)), 3)
-
-        # os.remove(img_path)
 
         return jsonify(
             {
