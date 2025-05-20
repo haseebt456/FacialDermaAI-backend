@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -27,34 +28,6 @@ app.use('/api/predictions', predictionRoutes);
 
 const upload = multer({ dest: 'uploads/' });
 
-app.post('/api/analysis/predict', upload.single('image'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No image uploaded' });
-  }
-
-  try {
-    const form = new FormData();
-
-    form.append('image', fs.createReadStream(req.file.path), req.file.originalname);
-
-    const response = await axios.post('http://localhost:8000/predict', form, {
-      headers: {
-        ...form.getHeaders(),
-      },
-    });
-
-    fs.unlinkSync(req.file.path);
-
-    return res.json(response.data);
-
-  } catch (error) {
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    console.error('Error forwarding to Flask API:', error.message);
-    return res.status(500).json({ error: 'Prediction failed' });
-  }
-});
 
 app.get('/', (req, res) => res.send('FacialDerma AI Backend Running!'));
 
