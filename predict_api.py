@@ -4,6 +4,8 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 import os
 from flask_cors import CORS
+import cv2
+import cvlib as cv
 
 
 app = Flask(__name__)
@@ -31,6 +33,17 @@ def preprocess_image(img_path):
 def uploaded_file(filename):
     return send_from_directory('uploads', filename)
 
+def is_blurry(image_path, threshold=100.0):
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+    return fm < threshold
+
+def contains_face(image_path):
+    image = cv2.imread(image_path)
+    faces, confidences = cv.detect_face(image)
+    return len(faces) > 0
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
@@ -38,37 +51,46 @@ def predict():
 
     img_file = request.files["image"]
     upload_folder = os.path.abspath("uploads")
-    os.makedirs("uploads", exist_ok=True) 
+    os.makedirs(upload_folder, exist_ok=True)
     img_path = os.path.join(upload_folder, img_file.filename)
-    
-    try:
-        img_file.save(img_path)
-        print(f"Image saved successfully at {img_path}")
-    except Exception as e:
-        print(f"Error saving image: {e}")
-        return jsonify({"error": "Failed to save image"}), 500
 
     try:
+        # Save image temporarily
+        img_file.save(img_path)
+        print(f"Image saved successfully at {img_path}")
+
+        # === Image Validation ===
+        if is_blurry(img_path):
+            os.remove(img_path)
+            return jsonify({"error": "Image is too blurry"}), 400
+
+        if not contains_face(img_path):
+            os.remove(img_path)
+            return jsonify({"error": "No face detected in the image"}), 400
+
+        # Preprocess and predict
         input_image = preprocess_image(img_path)
         prediction = model.predict(input_image)[0]
         predicted_class = np.argmax(prediction)
         predicted_label = labels_map.get(predicted_class, "Unknown")
         confidence_score = round(float(np.max(prediction)), 3)
 
-        # os.remove(img_path)
+        # Clean up image after prediction
+        os.remove(img_path)
 
-        return jsonify(
-            {
-                "predicted_label": predicted_label,
-                "confidence_score": confidence_score,
-                "image_url": f"/uploads/{img_file.filename}",
-            }
-        )
+        return jsonify({
+            "predicted_label": predicted_label,
+            "confidence_score": confidence_score,
+            "image_filename": img_file.filename  # Node will build full URL
+        })
 
     except Exception as e:
+        # Attempt cleanup in case of error
+        if os.path.exists(img_path):
+            os.remove(img_path)
         print("Prediction Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
-
