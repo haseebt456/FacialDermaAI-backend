@@ -17,7 +17,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    lowercase: true
+    lowercase: true,
+    validate: {
+  validator: function(v) {
+    return /^\S+@\S+\.\S+$/.test(v); // basic email format
+  },
+  message: props => `${props.value} is not a valid email address`
+}
   },
   password: {
     type: String,
