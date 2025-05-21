@@ -63,7 +63,7 @@ def predict():
         # === Image Validation ===
         if is_blurry(img_path):
             os.remove(img_path)
-            return jsonify({"error": "Image is too blurry"}), 400
+            return jsonify({"error": "Image is blury.Please try again with a clear picture"}), 400
 
         if not contains_face(img_path):
             os.remove(img_path)
