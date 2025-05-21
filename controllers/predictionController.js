@@ -37,26 +37,29 @@ exports.predictAndSave = async (req, res) => {
     await prediction.save();
 
     // 3. Cleanup
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
 
     res.status(200).json({ predicted_label, confidence_score, image_url });
   } catch (error) {
     console.error('Prediction error:', {
-    message: error.message,
-    axiosResponse: error.response?.data,
-    status: error.response?.status,
-  });
+      message: error.message,
+      axiosResponse: error.response?.data,
+      status: error.response?.status,
+    });
 
-  if (req.file?.path && fs.existsSync(req.file.path)) {
-    fs.unlinkSync(req.file.path);
-  }
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
 
-  return res.status(500).json({
-    error:
-      error.response?.data?.error ||
-      error.message ||
-      'Failed to predict image',
-  });
+    return res.status(500).json({
+      error:
+        error.response?.data?.error ||
+        error.message ||
+        'Failed to predict image',
+    });
   }
 };
 
