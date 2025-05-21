@@ -12,9 +12,8 @@ const FormData = require('form-data');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-// app.use('/api/getPredictions', require('./routes/getPredictions'));
 
-app.use(cors());
+app.use(cors());``
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
