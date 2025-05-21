@@ -12,7 +12,7 @@ const FormData = require('form-data');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-
+const userRoutes = require('./routes/userRoute')
 app.use(cors());``
 app.use(express.json());
 
@@ -24,6 +24,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api', sendEmail);
 app.use('/uploads', express.static('uploads'));
 app.use('/api/predictions', predictionRoutes);
+app.use('/api/users', userRoutes);
+
 
 const upload = multer({ dest: 'uploads/' });
 
